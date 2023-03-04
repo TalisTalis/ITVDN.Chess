@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Chess
 {
@@ -19,13 +21,13 @@ namespace Chess
         private void Init()
         {
             // "rnbqkbnr/pppppppp/8/8/8/8/pppppppp/rNBQKBNR w KQkq - 0 1"
-            // 0                                             1 2    3 4 5
+            // 0                                            1 2    3 4 5
             // 0 - расположение фигур
             // 1 - кто ходит (белые или черные)
             // 2 - флаги рокировки
             // 3 - битое поле
             // 4 - количество ходов для праавила 50 ходов
-            // 5 - текуущий номер хода
+            // 5 - текущий номер хода
             string[] parts = fen.Split();
             if (parts.Length != 6)
             {
@@ -57,6 +59,17 @@ namespace Chess
                 for (int x = 0; x < 8; x++)
                 {
                     figures[x, y] = lines[7 - y][x] == '.' ? Figure.None : (Figure)lines[7 - y][x];
+                }
+            }
+        }
+
+        public IEnumerable<FigureOnSquare> YieldFigures()
+        {
+            foreach (Square square in Square.YieldSquares())
+            {
+                if (GetFigureAt(square).GetColor() == moveColor)
+                {
+                    yield return new FigureOnSquare(GetFigureAt(square), square);
                 }
             }
         }
@@ -126,6 +139,53 @@ namespace Chess
             next.moveColor = moveColor.FlipColor();
             next.GenerateFen();
             return next;
+        }
+
+        public bool IsCheck()
+        {
+            Board after = new Board(fen);
+            after.moveColor = moveColor.FlipColor();
+            return after.CanEatKing();
+        }
+
+        private bool CanEatKing()
+        {
+            Square badKing = FindBadKing();
+
+            Moves moves = new Moves(this);
+
+            foreach (FigureOnSquare fs in YieldFigures())
+            {
+                FigureMoving fm = new FigureMoving(fs, badKing);
+
+                if (moves.CanMove(fm))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private Square FindBadKing()
+        {
+            Figure badKing = moveColor == Color.White ? Figure.BlackKing : Figure.WhiteKing;
+
+            foreach (Square square in Square.YieldSquares())
+            {
+                if (GetFigureAt(square) == badKing)
+                {
+                    return square;
+                }                
+            }
+            
+            return Square.none;
+        }
+
+        public bool IsCheckAfterMove(FigureMoving fm)
+        {
+            Board after = Move(fm);
+            return after.CanEatKing();
         }
     }
 }

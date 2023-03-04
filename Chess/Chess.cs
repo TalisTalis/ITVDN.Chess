@@ -1,4 +1,6 @@
-﻿namespace Chess
+﻿using System.Collections.Generic;
+
+namespace Chess
 {
     public class Chess
     {
@@ -6,6 +8,7 @@
 
         private Board board;
         Moves moves;
+        List<FigureMoving> allMoves;
         
         // конструктор
         // передатся фен-параметр.
@@ -30,6 +33,10 @@
             {
                 return this;
             }
+            if (board.IsCheckAfterMove(fm))
+            {
+                return this;
+            }
 
             Board nextBoard = board.Move(fm);
             
@@ -44,6 +51,45 @@
             Square square = new Square(x, y);
             Figure f = board.GetFigureAt(square);
             return f == Figure.None ? '.' : (char)f;
+        }
+
+        void FindAllMoves()
+        {
+            allMoves = new List<FigureMoving>();
+
+            foreach (FigureOnSquare fs in board.YieldFigures())
+            {
+                foreach (Square to in Square.YieldSquares())
+                {
+                    FigureMoving fm = new FigureMoving(fs, to);
+
+                    if (moves.CanMove(fm))
+                    {
+                        if (!board.IsCheckAfterMove(fm))
+                        {
+                            allMoves.Add(fm);
+                        }
+                    }
+                }
+            }
+        }
+
+        public List<string> GetAllMoves()
+        {
+            FindAllMoves();
+            List<string> list = new List<string>();
+
+            foreach (FigureMoving fm in allMoves)
+            {
+                list.Add(fm.ToString());
+            }
+
+            return list;
+        }
+
+        public bool IsCheck()
+        {
+            return board.IsCheck();
         }
     }
 }
