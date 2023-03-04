@@ -1,4 +1,6 @@
-﻿namespace Chess
+﻿using System;
+
+namespace Chess
 {
     public class FigureMoving
     {
@@ -28,5 +30,14 @@
             this.to = new Square(move.Substring(3, 2));
             this.promotion = (move.Length == 6) ? (Figure)move[5] : Figure.None; // если длина строки 6 то возмет символ фигуры если нет то нон
         }
+
+        public int DeltaX { get { return to.x - from.x; } }
+        public int DeltaY { get { return to.y - from.y; } }
+
+        public int AbsDeltaX { get { return Math.Abs(DeltaX); } }
+        public int AbsDeltaY { get { return Math.Abs(DeltaY); } }
+
+        public int AbsSignX { get { return Math.Sign(DeltaX); } }
+        public int AbsSignY { get { return Math.Sign(DeltaY); } }
     }
 }

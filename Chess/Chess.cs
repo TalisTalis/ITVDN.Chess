@@ -5,6 +5,7 @@
         public string Fen { get; private set; }
 
         private Board board;
+        Moves moves;
         
         // конструктор
         // передатся фен-параметр.
@@ -13,16 +14,23 @@
         {
             this.Fen = fen;
             board = new Board(fen);
+            moves = new Moves(board);
         }
 
         Chess(Board board)
         {
             this.board = board;
             Fen = this.board.fen;
+            moves = new Moves(board);
         }
         public Chess Move(string move) // формат Pe2e4 - пешка с е2 на е4 или Pe7e8Q - пешка превратилась в королеву
         {
             FigureMoving fm = new FigureMoving(move);
+            if (!moves.CanMove(fm))
+            {
+                return this;
+            }
+
             Board nextBoard = board.Move(fm);
             
             // новый шаг - создание нового экземпляра
